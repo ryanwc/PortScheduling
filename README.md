@@ -20,7 +20,7 @@ The purpose of the PortScheduling software is to produce schedules for reclaimer
 
 This section explains the variables that PortScheduling considers and the constraints PortScheduling faces while optimizing reclaimer activity.
 
-## Variables PortScheduling Considers
+### Variables PortScheduling Considers
 
 The PortScheduling program will optimize reclaimer activity according to the following variables given at the start of the program:
 
@@ -38,7 +38,7 @@ The PortScheduling program will optimize reclaimer activity according to the fol
 
 Note that this software considers the simple example of a single long pad that holds all stockpiles.
 
-## Constraints on Reclaimer Activity
+### Constraints on Reclaimer Activity
 
 Given the variables described above, PortScheduling will optimize reclaimer activity subject to the following constraints:
 
@@ -78,7 +78,7 @@ The optimization objective can easily be changed by modifying a few lines of cod
 
 PortScheduling is written in the MiniZinc language, which is a medium-level constraint programming language.  A MiniZinc program execution consists of a model, whose file ends in ".mzn", paired with data, whose file ends in ".dzn".  The model can be run with any data as long as the data conforms to the definitions the model expects. Please see the [MiniZinc website](http://www.minizinc.org) if you would like to learn more about it.
 
-*Running the Program As-Is*
+**Running the Program As-Is**
 
 There are many ways to run a MiniZinc program.  Here is one common way to run this program as-is:
 
@@ -89,10 +89,11 @@ There are many ways to run a MiniZinc program.  Here is one common way to run th
 5. Select all of the data files that you would like to import into the project explorer and choose "open".
 6. Right click on one of the data files in the project explorer and choose "Run the model with this data".
 
-*Extending the Program to Run with Your Own Data*
+**Extending the Program to Run with Your Own Data**
 
 You can also create your own scenarios to pair with the given model.  To do so, you must create a ".dzn" file and populate it with data of the following form:
 
+```
 nr = [integer];
 stageF = [boolean];
 ns = [integer];
@@ -105,6 +106,7 @@ reclaim_speed = [integer];
 maxtime = [integer];
 arrival = [array of integers];
 len = [integer];
+```
 
 where:
 
@@ -121,7 +123,7 @@ where:
 11. "arrivial" is an array with arrivial times for each ship where the ith entry in the array is the arrival time of the ith ship.
 12. "len" is the length of the pad.
 
-*Modifying the Model*
+**Modifying the Model**
 
 If you wish to modify the model (for example, to remove or add constraints), you should modify the file called "portschedule.mzn".  WARNING: This may make the model function incorrectly.
 
@@ -136,6 +138,7 @@ PortScheduling makes the following critical decisions subject to the data given 
 
 Given N stacks, the output of the program, which documents the above decisions, takes the following form:
 
+```
 westend = [WestEnd1, WestEnd2, ..., WestEndN]; 
 eastend = [EastEnd1, EastEnd2, ..., EastEndN]; 
 stack = [StackStartTime1, StackStartTime2, ..., StackStartTimeN];
@@ -143,6 +146,7 @@ endstack = [StackEndTime1, StackEndTime2, ..., StackEndTimeN];
 reclaim = [RecStartTime1, RecStartTime2, ..., RecStartTimeN]; 
 finish = [RecEndTime1, RecEndTime2, ..., RecEndTimeN]; 
 which = [RecID1, RecID2, ..., RecIDN];
+```
 
 where
 
