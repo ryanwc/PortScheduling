@@ -169,3 +169,13 @@ This software is licensed under the [GNU General Public License v3.0](https://ww
 # Credit
 
 This README is based on 1) information from the problem definition PDF provided by The University of Melbourne for the class [Modeling Discrete Optimization](https://www.coursera.org/course/modelingoptimization) offered on Coursera and 2) my experience constructing the program specified in that PDF.
+
+# Last Note: Experimental Visualization
+
+At the bottom of the portschedule.mzn file, you may notice some commented out code that says "output for solution visualization".  This is experimental code that will visualize the reclaimer activity.
+
+I did not use this feature when developing the software, so I can't offer many tips for using this feature or interpreting the visualization.  However, I included the file dependencies in this repo in case you want to play with it.
+
+To visualize the results, simply uncomment the last two lines of the portschedule.mzn file and run the program normally.  Note that this feature is experimental, with the development team providing this warning: "Be aware that sometimes the visualization can show a crossing which does not need to be there since it simply connects the reclaim jobs in order."  In reality, the automatic grader used for the course would throw an error if reclaimers on the same rail crossed.
+
+All credit for the visualization feature goes to the University of Melbourne team.

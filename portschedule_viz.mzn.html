@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script type="text/javascript" src="d3.min.js"></script>
+</head>
+<style>
+body {
+  font: 11px sans-serif;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.svg-container {
+    display: inline-block;
+    position: relative;
+    width: 80%;
+    padding-bottom: 100%; /* aspect ratio */
+    vertical-align: top;
+    overflow: hidden;
+}
+.svg-content-responsive {
+    display: inline-block;
+    position: absolute;
+    top: 10px;
+    left: 10px;
+}
+
+#viz {
+  margin: 60px;
+}
+
+</style>
+<body>
+
+    <div id="viz"></div>
+    <script type="text/javascript">
+
+    var windowWidth = window.innerWidth;
+    var windowHeight = window.innerHeight;
+
+
+    var solutions = [];
+
+      // d3.json("genMat.json", function(data) {
+    function addSolution(json){
+      var dataset = JSON.parse(json);
+      solutions.push(dataset);
+      gotoSolution(solutions.length-1);
+    }
+    function gotoSolution(solnumber) {
+      var dataset = solutions[solnumber];
+      var m = dataset.length;
+
+    var width = 800;
+    var height = 650;
+
+//Scalable SVG
+ /*     var SVG = d3.select("#viz")
+    .append("svg:svg")
+    .attr("preserveAspectRatio", "xMinYMin meet")
+   .attr("viewBox", "0 0 300 300")
+   .classed("svg-content-responsive", true); */
+
+
+//Stackable SVG
+    d3.select("#viz").selectAll("*").remove();
+
+    var SVG = d3.select("#viz")
+    .append("svg:svg")
+    .attr("preserveAspectRatio", "xMinYMin meet")
+    .attr("viewBox", "-50 -30 800 680")
+    .classed("svg-content-responsive", true);
+
+    var maxX = 0;
+    var maxY = 0;
+    for (var i = 0; i < dataset.length; i++) {
+      if (dataset[i]['finish'] > maxX) {
+        maxX = dataset[i]['finish'];
+      }
+      if (dataset[i]['eastend'] > maxY) {
+        maxY = dataset[i]['eastend'];
+      }
+    }
+    
+    var xScale = d3.scale.linear()
+          .range([0,800]);
+    var xAxis = d3.svg.axis()
+      .scale(xScale)
+      //.orient("bottom");
+
+    xScale.domain(d3.extent(dataset, function(d) {return d['finish']}));
+    
+    var yScale = d3.scale.linear()
+          .range([0,600]);
+    var yAxis = d3.svg.axis()
+      .scale(yScale)
+      .orient("left");
+
+    yScale.domain(d3.extent(dataset, function(d) {return d['eastend']}));
+
+
+    SVG.append("g")
+      .attr("class", "axis")
+      .attr("transform", "translate(0," + 600 + ")")
+      .call(xAxis)
+      .append("text")
+      .attr("x",400)
+      .attr("y",30)
+      .text("Time");
+
+    SVG.append("g")
+      .attr("class", "axis")
+      .call(yAxis)
+      .append("text")
+      .attr("x",-325)
+      .attr("y",-35)
+      .attr("transform", "rotate("+-90+")")
+      .text("Pad Position");
+
+
+
+    var scaleX = width / (maxX+2);
+    var scaleY = height / (maxY+2);
+    var offY = 2;
+    
+    var maxWhich = 0;
+    for (var i = 0; i < dataset.length; i++) {
+      if (dataset[i]['which'] > maxWhich) {
+        maxWhich = dataset[i]['which'];
+      }
+    }
+    
+    var reclaimers = [];
+    for (var i=0; i<maxWhich; i++) {
+      reclaimers.push([]);
+      for (var j=0; j<dataset.length; j++) {
+        if (dataset[j]['which']==i+1) {
+          reclaimers[i].push({"reclaim":dataset[j]['reclaim'],
+                              "finish":dataset[j]['finish'],
+                              "westend":dataset[j]['westend']});
+        }
+      }
+    }
+    for (var i=0; i<reclaimers.length; i++) {
+      var r = reclaimers[i];
+      r.sort(function(a,b) { return a['reclaim']-b['reclaim']; });
+      reclaimers[i] = r;
+    }
+
+    var ramp=d3.scale.linear().domain([0,reclaimers.length]).range(["red","blue"]);
+
+    // xCoord = (INDEX-1)*widthSquare + widthSquare/2 + boundary
+    for (var i = 0; i < dataset.length; i++)
+    {
+      SVG.append("rect")
+        .attr("width", scaleX*(dataset[i]['endstack']-dataset[i]['stack']))
+        .attr("height", scaleY*(dataset[i]['eastend']-dataset[i]['westend']))
+        .attr("x", scaleX*dataset[i]['stack'])
+        .attr("y", offY+scaleY*dataset[i]['westend'])
+        .style("fill","rgb(0,153,0)")
+        .style("stroke-width","1")
+        .style("stroke","rgb(0,0,0)");
+      SVG.append("rect")
+        .attr("width", scaleX*(dataset[i]['reclaim']-dataset[i]['endstack']))
+        .attr("height", scaleY*(dataset[i]['eastend']-dataset[i]['westend']))
+        .attr("x", scaleX*dataset[i]['endstack'])
+        .attr("y", offY+scaleY*dataset[i]['westend'])
+        .style("fill","rgb(0,255,153)")
+        .style("stroke-width","1")
+        .style("stroke","rgb(0,0,0)");
+      SVG.append("rect")
+        .attr("width", scaleX*(dataset[i]['finish']-dataset[i]['reclaim']))
+        .attr("height", scaleY*(dataset[i]['eastend']-dataset[i]['westend']))
+        .attr("x", scaleX*dataset[i]['reclaim'])
+        .attr("y", offY+scaleY*dataset[i]['westend'])
+        .style("fill","rgb(0,153,204)")
+        .style("stroke-width","1")
+        .style("stroke","rgb(0,0,0)");
+      SVG.append("text")
+        .attr("x",scaleX*((dataset[i]['stack']+dataset[i]['finish'])/2))
+        .attr("y",offY+scaleY*((dataset[i]['westend']+dataset[i]['eastend'])/2))
+        .text(i+1)
+        .style("font-size","20pt");
+    }
+    
+    for (var i=0; i<reclaimers.length; i++) {
+      var prevX = -1;
+      var prevY = -1;
+      for (var j=0; j<reclaimers[i].length; j++) {
+        SVG.append("line")
+        .attr("x1",scaleX*reclaimers[i][j]['reclaim'])
+        .attr("y1",offY+scaleY*reclaimers[i][j]['westend'])
+        .attr("x2",scaleX*reclaimers[i][j]['finish'])
+        .attr("y2",offY+scaleY*reclaimers[i][j]['westend'])
+        .style("stroke-width","5")
+        .style("stroke",ramp(i));
+        
+        if (prevX!=-1) {
+          SVG.append("line")
+          .attr("x1",scaleX*reclaimers[i][j]['reclaim'])
+          .attr("y1",offY+scaleY*reclaimers[i][j]['westend'])
+          .attr("x2",scaleX*prevX)
+          .attr("y2",offY+scaleY*prevY)
+          .style("stroke-width","5")
+          .style("stroke",ramp(i));          
+        }
+        
+        prevX = reclaimers[i][j]['finish'];
+        prevY = reclaimers[i][j]['westend'];
+        
+      }
+    SVG.append("text")
+      .attr("x",scaleX*(prevX+5))
+      .attr("y",offY+scaleY*prevY)
+      .text(i+1)
+      .style("font-size","16pt")
+      .style("fill",ramp(i));
+    }
+       
+  };
+    
+    </script>
+</body>
+</html>
