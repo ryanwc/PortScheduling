@@ -1,0 +1,12 @@
+nr = 3;
+stageF=false;
+ns = 8;
+nsh = 4;
+size = [4,3,2,5,4,2,1,4];
+ship = [1,2,3,4,4,3,1,2];
+stack_time = 2;
+reclaim_time = 1;
+reclaim_speed = 1;
+maxtime = 60;
+arrival = [ 0, 10, 0, 30 ];
+len = 12;
