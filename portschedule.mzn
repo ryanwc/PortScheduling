@@ -2,7 +2,7 @@ int: nr; % number of reclaimers
          % number of rails = nr for stages A,B,C,D,E
          % number of rails = (nr + 1) div 2 for stage F
 set of int: RECLAIMER = 1..nr;
-bool: stageF; % is this stage F data
+bool: stageF; % is this stage F data?
 
 int: ns; % number of stockpiles
 set of int: STOCKPILE = 1..ns;
@@ -31,7 +31,7 @@ int: stack_time;  % time to stack one unit
 int: reclaim_time;  % time to reclaim one unit
 int: reclaim_speed;  % time a reclaimer moves one unit of distance
 
-%%% CRITICAL DECISIONS for Stage A %%%
+%%% CRITICAL DECISIONS %%%
 
 % where is the westend of the stockpile
 array[STOCKPILE] of var POSITION: westend;
@@ -133,9 +133,8 @@ constraint forall(i1, i2 in STOCKPILE where i1 < i2)
 %          A ship is at berth from when it arrives to when the last stockpile for that
 %          to when the last stockpile for that ship is finished reclaiming.
 %          1) Minimize the time each ship is at berth.
-
-% berth for a ship is the finish time of its last stockpile minus its arrival time
-
+%%% Need to add new data wrangling atatements and a new variable decision for stage E.
+%%% Berth time for a ship is the finish time of its last stockpile minus its arrival time
 array[SHIP] of set of int: cargo = [ { j | j in STOCKPILE where ship[j] = i } | i in SHIP ];
 
 array[SHIP,STOCKPILE] of 0..ns: cargo2D = 
@@ -157,15 +156,6 @@ constraint totalBerth = sum(i in SHIP)(berth[i]);
 %          1) Ensure that reclaimers 2i-1 and 2i which are on rail i are such that
 %             reclaimer 2i-1 is always west of 2i
 %             (or at least reclaimer 2i is never west of 2i-1)
-
-
-%constraint forall(i in RECLAIMER)
- %                ( (i mod 2 = 0) -> forall(j1, j2 in STOCKPILE where j1 < j2)
-  %         ((((reclaimSpan[j1] intersect reclaimSpan[j2] != {}) /\ (which[j1] = i) /\ (which[j2] = (i-1))) ->
-   %                           (westend[j1] > westend[j2])) /\
-    %        (((reclaimSpan[j1] intersect reclaimSpan[j2] != {}) /\ (which[j2] = i) /\ (which[j1] = (i-1))) ->
-     %                         (westend[j2] > westend[j1]))));
-
 constraint forall(i in RECLAIMER)
                  ( ((i mod 2 = 0) -> forall(j in STOCKPILE)
                                            ( (which[j] = i) -> (westend[j] >= len div 2) ) )
@@ -176,6 +166,9 @@ constraint forall(i in RECLAIMER)
 
 %%% Solve and Search %%%
 
+% search on variables in the finished array.  pick the varaible that has the largest 
+% domain subject to how many times that variable has caused search failure, and give 
+% that variable the minimum value in its domain.  minimize total time ships are waiting in port.
 solve :: int_search(finished, dom_w_deg, indomain_min, complete)
          minimize totalBerth;
 
@@ -195,5 +188,5 @@ output
 % output for solution visualization
 % warning: this is an experimental feature.  Feedback and suggestions are encouraged.
 % 
-%include "portschedule_viz.mzn";
-%output [portschedule_viz(westend,eastend,stack,endstack,reclaim,finished,which)];
+% include "portschedule_viz.mzn";
+% output [portschedule_viz(westend,eastend,stack,endstack,reclaim,finished,which)];
